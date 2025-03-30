@@ -1,14 +1,34 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from typing import List
 
 from modals.inputs import SearchQueryParams
 from modals.results import SearchResult
+from states.appstates import AppState
+from runnables.builders import SearxInstanceScraper
 from workflows.text_query_search import searxng_query
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="Search Service")
+import asyncio
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.appstate = AppState()
+    app.state.builder = SearxInstanceScraper()
+    instances = await asyncio.to_thread(app.state.builder.get_instance_stats)
+    app.state.appstate.set_instances(instances)
+    sorted_instances = SearxInstanceScraper.sort_instances_by_stats(
+        app.state.appstate.get_instances())
+    app.state.appstate.set_instances(sorted_instances)
+    yield
+
+
+app = FastAPI(title="Search Service", lifespan=lifespan)
 
 ## TODO: Add Image search
+
+
 @app.get("/search", response_model=List[SearchResult])
 def search(query: str, max_results: int = 3, max_content: int = 2000):
     """
@@ -33,12 +53,18 @@ def search(query: str, max_results: int = 3, max_content: int = 2000):
         params = SearchQueryParams(query=query,
                                    max_results=max_results,
                                    max_content=max_content)
-        results = searxng_query(params)
+        results = searxng_query(params, app.state.appstate.get_instances())
         if not results:
             raise HTTPException(status_code=404, detail="No results found")
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/get-instance")
+async def get_instance(request: Request):
+    state: AppState = app.state.appstate
+    return {"available_instances": state.get_instances()}
 
 
 if __name__ == "__main__":

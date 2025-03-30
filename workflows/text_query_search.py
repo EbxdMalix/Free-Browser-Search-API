@@ -2,16 +2,18 @@ import concurrent.futures
 import time
 from modals.results import SearchResult
 from modals.inputs import SearchQueryParams
+from modals.instances import SearxInstanceStats
 from runnables.searchengines import SearXNGEngine
 from typing import List
 
 
-def searxng_query(params: SearchQueryParams) -> List[SearchResult]:
+def searxng_query(params: SearchQueryParams,
+                  instances: List[SearxInstanceStats]) -> List[SearchResult]:
     """
     Basic search query to publicly available SearXNG instances,
     crawling results in parallel using threading.
     """
-    engine = SearXNGEngine(params)
+    engine = SearXNGEngine(params, instances)
     engine.build()
     articles = engine.fetch_search_results()
 

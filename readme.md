@@ -1,5 +1,5 @@
 # Free Search API
-<img src="https://i.ibb.co/B2Wf3kXW/freesearchlogo.png" width="820" height="312">
+<img src="https://i.ibb.co/B2Wf3kXW/freesearchlogo.png" style="max-width: 100%; height: auto;" alt="FreeSearch Logo">
 
 Free Search API provides real time search results from best search engines (including google and bing) to enhance internet accessibility for AI agents and LLM applications. It uses SearXNG to source results.
 

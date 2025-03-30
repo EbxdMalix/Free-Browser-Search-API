@@ -1,15 +1,13 @@
 from modals.inputs import SearchQueryParams
 from modals.results import SearchResult
 from modals.types import Article
-
+from modals.instances import SearxInstanceStats
 from typing import List
 import time
 import random
 
 from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright, Page, Browser, TimeoutError as PlaywrightTimeoutError
-
-from runnables.builders import get_online_instances
+from playwright.sync_api import sync_playwright, Page, Browser, TimeoutError as PlaywrightTimeoutError, Error as PlaywrightException
 
 import logging
 from typing import List, Optional
@@ -25,12 +23,13 @@ class SearXNGEngine:
     Interface to conntect with SearXNG
     """
 
-    def __init__(self, params: SearchQueryParams):
+    def __init__(self, params: SearchQueryParams,
+                 instances: List[SearxInstanceStats]):
         self.params = params
-        self.instances = []
+        self.instances = instances
 
     def build(self):
-        self.instances = get_online_instances()
+        pass
 
     def _scrape_page(self, soup: BeautifulSoup) -> List[Article]:
         """Helper function to extract articles from a BeautifulSoup object."""
@@ -82,9 +81,10 @@ class SearXNGEngine:
                 for instance in self.instances:
                     page: Optional[Page] = None
                     logger.info(f"Attempting search on instance: {instance}")
+                    instance_url = instance.url
                     try:
                         page = browser.new_page()
-                        search_url = f"{instance}/search?q={self.params.query}"
+                        search_url = f"{instance_url}search?q={self.params.query}"
                         logger.debug(f"Navigating to: {search_url}")
                         page.goto(search_url, timeout=self.params.timeout)
 

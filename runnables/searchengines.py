@@ -12,6 +12,8 @@ from playwright.sync_api import sync_playwright, Page, Browser, TimeoutError as 
 import logging
 from typing import List, Optional
 
+from markdownify import markdownify as md
+
 # Setup basic logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -200,12 +202,9 @@ class SearXNGEngine:
 
                     body = content_soup.find('body')
                     if body:
-                        text_content = body.get_text(separator=' ', strip=True)
-                        text_content = ' '.join(text_content.split())
-                        context_text = text_content[:self.params.
-                                                    max_content] + "..." if len(
-                                                        text_content
-                                                    ) > self.params.max_content else text_content
+                        context_text = md(
+                            body.get_text(separator=' ', strip=True))
+
                     else:
                         context_text = "No content could be extracted"
 

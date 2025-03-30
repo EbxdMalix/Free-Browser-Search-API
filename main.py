@@ -14,13 +14,11 @@ import asyncio
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialize state
     app.state.appstate = AppState()
     app.state.builder = SearxInstanceScraper()
-    instances = await asyncio.to_thread(app.state.builder.get_instance_stats)
-    app.state.appstate.set_instances(instances)
-    sorted_instances = SearxInstanceScraper.sort_instances_by_stats(
-        app.state.appstate.get_instances())
-    app.state.appstate.set_instances(sorted_instances)
+
+    await update_instances(app)
     yield
 
 
@@ -30,29 +28,22 @@ app = FastAPI(title="Search Service", lifespan=lifespan)
 
 
 @app.get("/search", response_model=List[SearchResult])
-def search(query: str, max_results: int = 3, max_content: int = 2000):
+def search(query: str, max_results: int = 3):
     """
     Endpoint to search for a query and return results with additional context.
 
     Parameters:
     - query: The search query string
     - max_results: Number of results to return (1-5, default: 3)
-    - max_content: Maximum content length per result (100-5000, default: 2000)
     """
     # Validate max_results
     if max_results < 1 or max_results > 5:
         raise HTTPException(status_code=400,
                             detail="max_results must be between 1 and 5")
 
-    # Validate max_content
-    if max_content < 100 or max_content > 5000:
-        raise HTTPException(status_code=400,
-                            detail="max_content must be between 100 and 5000")
-
     try:
         params = SearchQueryParams(query=query,
-                                   max_results=max_results,
-                                   max_content=max_content)
+                                   max_results=max_results)
         results = searxng_query(params, app.state.appstate.get_instances())
         if not results:
             raise HTTPException(status_code=404, detail="No results found")
@@ -61,8 +52,21 @@ def search(query: str, max_results: int = 3, max_content: int = 2000):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/get-instance")
-async def get_instance(request: Request):
+@app.get("/update-instances")
+async def update_instances(request: Request):
+    print("Updating instances..")
+
+    instances = await asyncio.to_thread(app.state.builder.get_instance_stats)
+    app.state.appstate.set_instances(instances)
+    sorted_instances = SearxInstanceScraper.sort_instances_by_stats(
+        app.state.appstate.get_instances())
+    app.state.appstate.set_instances(sorted_instances)
+
+    return {"instances_found:": len(app.state.appstate.get_instances())}
+
+
+@app.get("/get-instances")
+async def get_instances(request: Request):
     state: AppState = app.state.appstate
     return {"available_instances": state.get_instances()}
 

@@ -1,17 +1,23 @@
 # Free Search API
 <img src="https://camo.githubusercontent.com/df8d9ed52565a6c15285d627e7dd93c31b99c5085e41809391113031d5f96ceb/68747470733a2f2f692e6962622e636f2f6e4d3567675656562f556e7469746c65642d64657369676e2d322e706e67" width="360" height="360">
 
-Free Search API provides real time Google search results to enhance internet accessibility for AI agents and LLM applications.
+Free Search API provides real time search results from best search engines (Google, Bing, Duckducgo) to enhance internet accessibility for AI agents and LLM applications. It uses SearXNG to source results.
 
 ## Overview
 
 This API provides a search endpoint that:
-- Performs a search query using a custom search engine
-- Retrieves a specified number of top results
-- Crawls each result page to extract content
+- Performs a search query.
+- Retrieves a specified number of top results.
+- Crawls each result page to extract content.
 - Returns structured data with source, link, and context for each result
 
 ---
+
+## Public Instance
+
+A publicly accessible demo of this API has been hosted
+
+URL: https://freesearch.replit.app/docs
 
 ## Installation
 
@@ -21,13 +27,14 @@ This API provides a search endpoint that:
 - Beautiful Soup 4
 - FastAPI
 - Uvicorn
+- Markdownify
 
 ### Setup
 
 1. **Clone this repository**
 2. **Install dependencies:**
    ```sh
-   pip install fastapi uvicorn pydantic playwright beautifulsoup4
+   pip install fastapi uvicorn pydantic playwright beautifulsoup4 markdownify
    ```
 3. **Install playwright browser:**
    ```sh
@@ -39,7 +46,7 @@ This API provides a search endpoint that:
 xvfb-run python main.py
 ```
 
-### API Endpoint
+## API Endpoints
 
 ### GET /search
 
@@ -49,9 +56,16 @@ Search for a query and retrieve results with additional context.
 |-------------|----------|----------|---------|-------------|
 | `query`     | string   | ✅        | -       | The search query string |
 | `max_results` | integer | ❌        | `3`     | Number of results to return (range: 1-5) |
-| `max_content` | integer | ❌        | `2000`  | Maximum content length per result in characters (range: 100-5000) |
 
-### Response
+#### Example Request
+
+```sh
+curl -X 'GET' \
+  'http://localhost:11235/search?query=News%20in%20Indianapolis&max_results=3' \
+  -H 'accept: application/json'
+```
+
+#### Response
 
 ```json
 [
@@ -62,15 +76,57 @@ Search for a query and retrieve results with additional context.
   }
 ]
 ```
-### Example Request
+
+### GET /update-instances
+
+Update internal state about public searxng instances. 
+
+#### Example Request
 
 ```sh
-curl "http://localhost:11235/search?query=fastapi+tutorial&max_results=2&max_content=1000"
+curl -X 'GET' \
+  'http://localhost:11235/update-instances' \
+  -H 'accept: application/json'
 ```
 
-## Public Instance
+#### Response
 
-A publicly accessible demo of this API has been hosted
+```json
+{
+  "instances_found:": 75
+}
+```
 
-URL: https://freesearch.replit.app/docs
+### GET /get-instances
+
+Return information about available searxng instances.
+
+#### Example Request
+
+```sh
+curl -X 'GET' \
+  'http://localhost:11235//get-instances' \
+  -H 'accept: application/json'
+```
+
+#### Response
+
+```json
+[
+   {
+         "url": "https://searxng.brihx.fr/",
+         "search_response_time": 0.923,
+         "google_response_time": 0.358,
+         "initial_response_time": 0.117,
+         "uptime_percent": 100
+   },
+   {
+         "url": "https://searx.tuxcloud.net/",
+         "search_response_time": 0.814,
+         "google_response_time": 0.375,
+         "initial_response_time": 0.156,
+         "uptime_percent": 100
+   }
+]
+```
 

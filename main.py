@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Search Service", lifespan=lifespan)
+app = FastAPI(title="Free Search", lifespan=lifespan)
 
 ## TODO: Add Image search
 

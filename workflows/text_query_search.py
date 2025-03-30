@@ -14,7 +14,6 @@ def searxng_query(params: SearchQueryParams,
     crawling results in parallel using threading.
     """
     engine = SearXNGEngine(params, instances)
-    engine.build()
     articles = engine.fetch_search_results()
 
     articles_to_crawl = articles[:params.max_results]

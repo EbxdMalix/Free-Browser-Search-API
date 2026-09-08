@@ -1,8 +1,9 @@
 [tool.poetry]
-name = "python-template"
+name = "free-browser-search-api"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "High-performance Free Browser Search API Gateway"
+authors = ["EbxdMalix <https://github.com/EbxdMalix>"]
+license = "MIT"
 
 [tool.poetry.dependencies]
 python = ">=3.10.0,<3.13"
